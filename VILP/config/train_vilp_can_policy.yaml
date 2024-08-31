@@ -1,0 +1,381 @@
+_target_: VILP.workspace.train_vilp_policy_workspace.TrainVilpPolicyWorkspace
+
+checkpoint:
+  save_last_ckpt: true
+  save_last_snapshot: false
+  topk:
+    format_str: epoch={epoch:04d}-test_mean_score={test_mean_score:.3f}.ckpt
+    k: 5
+    mode: max
+    monitor_key: test_mean_score
+
+logging:
+  group: null
+  id: null
+  mode: online
+  name: 2023.01.16-20.20.06_VILP_video_can_video
+  project: VILP_debug
+  resume: true
+  tags:
+  - VILP_video
+  - can_video
+  - default
+multi_run:
+  run_dir: data/outputs/2023.01.16/20.20.06_VILP_video_can_video
+  wandb_name_base: 2023.01.16-20.20.06_VILP_video_can_video
+
+seed: &seed 42
+env_seed: &env_seed 100000
+dataset_obs_steps: &dataset_obs_steps 1
+batch_size: &batch_size 256
+device: &device cuda:1
+exp_name: default
+horizon: &horizon 3
+n_obs_steps: *dataset_obs_steps
+name: VILP_video
+obs_as_global_cond: true
+image_shape: &image_shape [3,96,96]
+crop_shape: &crop_shape null
+n_action_steps: &n_action_steps 1
+low_level_horizon: &low_level_horizon 2
+low_level_obs_steps: &low_level_obs_steps 2
+n_action_steps_rollout: &n_action_steps_rollout 6
+
+
+optimizer:
+  _target_: torch.optim.AdamW
+  betas:
+  - 0.95
+  - 0.999
+  eps: 1.0e-08
+  lr: 0.0001
+  weight_decay: 1.0e-06
+past_action_visible: false
+
+
+policy:
+  _target_: VILP.policy.vilp_low_level_policy.VilpLowLevelPolicy
+  device: *device
+  subgoal_steps: &subgoal_steps 6
+  subgoal_interval: 2
+  latent_shape: &latent_shape [3,12,12]
+  obs_steps: *dataset_obs_steps
+  n_action_steps_rollout: *n_action_steps_rollout
+  with_itp: false
+  keys:
+    - agentview_image
+    - robot0_eye_in_hand_image
+  vqgan_configs:
+    - ckpt_path: vq_models/2024-08-12T00-43-33/checkpoints/checkpoint-epoch=54.ckpt
+      embed_dim: 3
+      n_embed: 1024
+      ddconfig:
+        double_z: False
+        z_channels: 3
+        resolution: 96
+        in_channels: 3
+        out_ch: 3
+        ch: 128
+        ch_mult: [1,1,2,4]  # num_down = len(ch_mult)-1
+        num_res_blocks: 2
+        attn_resolutions: [16]
+        dropout: 0.0
+      lossconfig:
+        target: VILP.taming.modules.losses.vqperceptual.VQLPIPSWithDiscriminator
+        params:
+          disc_conditional: False
+          disc_in_channels: 3
+          disc_start: 10000
+          disc_weight: 0.8
+          codebook_weight: 1.0
+    - ckpt_path: vq_models/2024-08-12T00-44-25/checkpoints/checkpoint-epoch=54.ckpt
+      embed_dim: 3
+      n_embed: 1024
+      ddconfig:
+        double_z: False
+        z_channels: 3
+        resolution: 96
+        in_channels: 3
+        out_ch: 3
+        ch: 128
+        ch_mult: [1,1,2,4]  # num_down = len(ch_mult)-1
+        num_res_blocks: 2
+        attn_resolutions: [16]
+        dropout: 0.0
+      lossconfig:
+        target: VILP.taming.modules.losses.vqperceptual.VQLPIPSWithDiscriminator
+        params:
+          disc_conditional: False
+          disc_in_channels: 3
+          disc_start: 10000
+          disc_weight: 0.8
+          codebook_weight: 1.0
+  planner_paths:
+    - latent_planning/vilp_can/agentview_image.pth
+    - latent_planning/vilp_can/robot0_eye_in_hand_image.pth
+  planners:
+    - _target_: VILP.policy.latent_video_diffusion.LatentVideoDiffusion
+      latent_shape: *latent_shape
+      subgoal_steps: *subgoal_steps
+      device: *device
+      cond_predict_scale: false
+      channel_mult: [1,2,4]
+      num_res_blocks: 2
+      transformer_depth: 1
+      attention_resolutions: [4,8]
+      model_channels: 64
+      num_head_channels: 8
+      crop_shape: *crop_shape
+      eval_fixed_crop: true
+      horizon: *subgoal_steps
+      n_obs_steps: 1
+      noise_scheduler:
+        _target_: diffusers.schedulers.scheduling_ddim.DDIMScheduler
+        beta_end: 0.0195
+        beta_schedule: squaredcos_cap_v2
+        beta_start: 0.0015
+        clip_sample: true
+        set_alpha_to_one: True
+        steps_offset: 0
+        num_train_timesteps: 300
+        prediction_type: epsilon
+      num_inference_steps: 16
+      obs_as_global_cond: true
+      obs_encoder_group_norm: true
+      obs_encoder:
+        _target_: VILP.model.vision.multi_image_obs_encoder.MultiImageObsEncoder
+        shape_meta:
+          obs:
+            agentview_image:
+              shape: *image_shape
+              type: rgb
+            robot0_eye_in_hand_image:
+              shape: *image_shape
+              type: rgb
+        rgb_model:
+          _target_: diffusion_policy.model.vision.model_getter.get_resnet
+          name: resnet18
+          weights: null
+        resize_shape: null
+        crop_shape: *crop_shape
+        # constant center crop
+        random_crop: True
+        use_group_norm: True
+        share_rgb_model: False
+        imagenet_norm: True
+      shape_meta:
+        latent: 
+          shape: *latent_shape
+        obs:
+          agentview_image:
+            shape: *image_shape
+            type: rgb
+          robot0_eye_in_hand_image:
+            shape: *image_shape
+            type: rgb
+    - _target_: VILP.policy.latent_video_diffusion.LatentVideoDiffusion
+      latent_shape: *latent_shape
+      subgoal_steps: *subgoal_steps
+      device: *device
+      cond_predict_scale: false
+      channel_mult: [1,2,4]
+      num_res_blocks: 2
+      transformer_depth: 1
+      attention_resolutions: [4,8]
+      model_channels: 64
+      num_head_channels: 8
+      crop_shape: *crop_shape
+      eval_fixed_crop: true
+      horizon: *subgoal_steps
+      n_obs_steps: 1
+      noise_scheduler:
+        _target_: diffusers.schedulers.scheduling_ddim.DDIMScheduler
+        beta_end: 0.0195
+        beta_schedule: squaredcos_cap_v2
+        beta_start: 0.0015
+        clip_sample: true
+        set_alpha_to_one: True
+        steps_offset: 0
+        num_train_timesteps: 300
+        prediction_type: epsilon
+      num_inference_steps: 16
+      obs_as_global_cond: true
+      obs_encoder_group_norm: true
+      obs_encoder:
+        _target_: VILP.model.vision.multi_image_obs_encoder.MultiImageObsEncoder
+        shape_meta:
+          obs:
+            agentview_image:
+              shape: *image_shape
+              type: rgb
+            robot0_eye_in_hand_image:
+              shape: *image_shape
+              type: rgb
+        rgb_model:
+          _target_: diffusion_policy.model.vision.model_getter.get_resnet
+          name: resnet18
+          weights: null
+        resize_shape: null
+        crop_shape: *crop_shape
+        # constant center crop
+        random_crop: True
+        use_group_norm: True
+        share_rgb_model: False
+        imagenet_norm: True
+      shape_meta:
+        latent: 
+          shape: *latent_shape
+        obs:
+          agentview_image:
+            shape: *image_shape
+            type: rgb
+          robot0_eye_in_hand_image:
+            shape: *image_shape
+            type: rgb
+  model_low_level:
+    _target_: VILP.policy.action_mapping_itp.ActionMappingItp
+    shape_meta:
+      action:
+        shape: [10]
+    obs:
+      agentview_image:
+        shape: *image_shape
+        type: rgb
+      robot0_eye_in_hand_image:
+        shape: *image_shape
+        type: rgb
+    horizon: *low_level_horizon
+    obs_encoder:
+      _target_: VILP.model.vision.multi_image_obs_encoder.MultiImageObsEncoder
+      shape_meta:
+        obs:
+          agentview_image:
+            shape: *image_shape
+            type: rgb
+          robot0_eye_in_hand_image:
+            shape: *image_shape
+            type: rgb
+      rgb_model:
+        _target_: diffusion_policy.model.vision.model_getter.get_resnet
+        name: resnet18
+        weights: null
+      resize_shape: null
+
+      crop_shape: null
+      # constant center crop
+      random_crop: True
+      use_group_norm: True
+      share_rgb_model: False
+      imagenet_norm: True
+
+
+dataset_shape_meta: &dataset_shape_meta
+  obs:
+    agentview_image:
+      shape: [3, 84, 84]
+      type: rgb
+    robot0_eye_in_hand_image:
+      shape: [3, 84, 84]
+      type: rgb
+  action: 
+    shape: [10]
+
+original_shape_meta: &original_shape_meta
+  obs:
+    agentview_image:
+      shape: [3, 84, 84]
+      type: rgb
+    robot0_eye_in_hand_image:
+      shape: [3, 84, 84]
+      type: rgb
+  action: 
+    shape: [10]
+
+
+
+task:
+  dataset:
+    _target_: VILP.dataset.robomimic_vilp_dataset.RobomimicVilpDataset
+    shape_meta: *dataset_shape_meta
+    dataset_path: data/robomimic/datasets/can/ph/image_abs.hdf5
+    horizon: *horizon
+    pad_before: 2
+    pad_after: 4
+    use_cache: True
+    abs_action: True
+    seed: *seed
+    val_ratio: 0
+    rotation_rep: 'rotation_6d'
+    use_legacy_normalizer: False
+
+  env_runner:
+    _target_: VILP.env_runner.robomimic_vilp_runner.RobomimicVilpRunner
+    dataset_path: data/robomimic/datasets/can/ph/image_abs.hdf5
+    shape_meta:  *original_shape_meta
+    # costs 1GB per env
+    n_train: 2
+    n_train_vis: 2
+    train_start_idx: 0
+    n_test: 50
+    n_test_vis: 4
+    test_start_seed: *env_seed
+    # use python's eval function as resolver, single-quoted string as argument
+    max_steps: 400
+    n_obs_steps: 1
+    n_action_steps: *n_action_steps_rollout
+    render_obs_key: 'agentview_image'
+    fps: 10
+    crf: 22
+    past_action: false
+    tqdm_interval_sec: 1.0
+    n_envs: 26
+    abs_action: True
+  image_shape: *image_shape
+  name: can_video_robomimic
+  shape_meta:
+    obs:
+      agentview_image:
+        shape: *image_shape
+        type: rgb
+      robot0_eye_in_hand_image:
+        shape: *image_shape
+        type: rgb
+    action: 
+      shape: [10]
+ema:
+  _target_: diffusion_policy.model.diffusion.ema_model.EMAModel
+  inv_gamma: 1.0
+  max_value: 0.9999
+  min_value: 0.0
+  power: 0.75
+  update_after_step: 0
+task_name: can_video
+training:
+  checkpoint_every: 1
+  debug: false
+  device: *device
+  gradient_accumulate_every: 1
+  lr_scheduler: cosine
+  lr_warmup_steps: 500
+  max_train_steps: null
+  max_val_steps: null
+  num_epochs: 2000
+  resume: true
+  rollout_every: 50
+  sample_every: 5000
+  seed: *seed
+  tqdm_interval_sec: 1.0
+  use_ema: true
+  val_every: 5000
+val_dataloader:
+  batch_size: *batch_size
+  num_workers: 8
+  persistent_workers: false
+  pin_memory: true
+  shuffle: false
+dataloader:
+  batch_size: *batch_size
+  num_workers: 8
+  persistent_workers: false
+  pin_memory: true
+  shuffle: true

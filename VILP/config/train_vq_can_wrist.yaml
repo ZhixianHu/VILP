@@ -1,0 +1,80 @@
+_target_: VILP.workspace.train_vqgan_workspace.TrainVqganWorkspace
+base_learning_rate: 4.5e-6
+model:
+  embed_dim: 3
+  n_embed: 1024
+  ddconfig:
+    double_z: False
+    z_channels: 3
+    resolution: 96
+    in_channels: 3
+    out_ch: 3
+    ch: 128
+    ch_mult: [1,1,2,4] 
+    num_res_blocks: 2
+    attn_resolutions: [16]
+    dropout: 0.0
+  lossconfig:
+    target: VILP.taming.modules.losses.vqperceptual.VQLPIPSWithDiscriminator
+    params:
+      disc_conditional: False
+      disc_in_channels: 3
+      disc_start: 10000
+      disc_weight: 0.8
+      codebook_weight: 1.0
+
+
+image_shape: &image_shape [3, 84, 84]
+shape_meta: &shape_meta
+  obs:
+    robot0_eye_in_hand_image:
+      shape: *image_shape
+      type: rgb
+  action: 
+    shape: [10]
+
+batch_size: &batch_size 64
+gpus: '0,'
+seed: &seed 42
+save_every: 1
+max_epochs: 100000
+
+dataset:
+  _target_: VILP.dataset.robomimic_ae_dataset.RobomimicAeDataset
+  shape_meta: *shape_meta
+  dataset_path: data/robomimic/datasets/can/ph/image_abs.hdf5
+  horizon: 1
+  pad_before: 1
+  pad_after: 1
+  n_obs_steps: 1
+  use_cache: False
+  abs_action: True
+  seed: *seed
+  val_ratio: 0.0
+  rotation_rep: 'rotation_6d'
+  use_legacy_normalizer: False
+  key_index: robot0_eye_in_hand_image
+
+val_dataloader:
+  batch_size: *batch_size
+  num_workers: 8
+  persistent_workers: true
+  pin_memory: true
+  shuffle: true
+dataloader:
+  batch_size: *batch_size
+  num_workers: 8
+  persistent_workers: true
+  pin_memory: true
+  shuffle: true
+
+trainer:
+  name: "vqvae_dubug"
+  resume: ""
+  base: []
+  no_test: false
+  project: null
+  debug: false
+  seed: *seed
+  postfix: ""
+  train: true
