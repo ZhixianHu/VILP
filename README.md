@@ -4,7 +4,7 @@ _under review_
 
 _We will keep updating this repo._
 
-![teaser](teasers/teaser.png)
+![teaser](teasers/teaser_temp.png)
 
 
 ## Installation
