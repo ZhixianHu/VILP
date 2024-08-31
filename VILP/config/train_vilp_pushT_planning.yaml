@@ -11,16 +11,16 @@ logging:
   group: null
   id: null
   mode: online
-  name: 2023.01.16-20.20.06_vilp_video_pushT_video
+  name: VILP_video_pushT_planning
   project: VILP_debug
   resume: true
   tags:
-  - vilp_video
+  - VILP_video
   - pushT_video
   - default
 multi_run:
-  run_dir: data/outputs/2023.01.16/20.20.06_vilp_video_pushT_video
-  wandb_name_base: 2023.01.16-20.20.06_vilp_video_pushT_video
+  run_dir: data/outputs/VILP_video_pushT_planning
+  wandb_name_base: VILP_video_pushT_planning
 
 optimizer:
   _target_: torch.optim.AdamW
@@ -33,7 +33,7 @@ optimizer:
 past_action_visible: false
 
 dataset_obs_steps: &dataset_obs_steps 1
-batch_size: &batch_size 100
+batch_size: &batch_size 64
 device: &device cuda:0
 exp_name: default
 horizon: &horizon 23

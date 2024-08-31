@@ -11,7 +11,7 @@ logging:
   group: null
   id: null
   mode: online
-  name: 2023.01.16-20.20.06_VILP_video_can_video_robomimic
+  name: VILP_video_can_planning
   project: VILP_debug
   resume: true
   tags:
@@ -19,8 +19,8 @@ logging:
   - can_video_robomimic
   - default
 multi_run:
-  run_dir: data/outputs/2023.01.16/20.20.06_VILP_video_can_video_robomimic
-  wandb_name_base: 2023.01.16-20.20.06_VILP_video_can_video_robomimic
+  run_dir: data/outputs/VILP_video_can_planning
+  wandb_name_base: VILP_video_can_planning
 
 optimizer:
   _target_: torch.optim.AdamW

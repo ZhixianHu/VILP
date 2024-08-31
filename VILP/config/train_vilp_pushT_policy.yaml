@@ -13,7 +13,7 @@ logging:
   group: null
   id: null
   mode: online
-  name: 2023.01.16-20.20.06_VILP_video_pushT_video
+  name: VILP_video_pushT_policy
   project: VILP_debug
   resume: true
   tags:
@@ -21,8 +21,8 @@ logging:
   - pushT_video
   - default
 multi_run:
-  run_dir: data/outputs/2023.01.16/20.20.06_VILP_video_pushT_video
-  wandb_name_base: 2023.01.16-20.20.06_VILP_video_pushT_video
+  run_dir: data/outputs/VILP_video_pushT_policy
+  wandb_name_base: VILP_video_pushT_policy
 
 
 dataset_obs_steps: &dataset_obs_steps 1
@@ -90,7 +90,7 @@ policy:
           disc_weight: 0.8
           codebook_weight: 1.0
   planner_paths:
-    - latent_planning/pushT_video_push_12/image.pth
+    - latent_planning/pushT/image.pth
   planners:
     - _target_: VILP.policy.latent_video_diffusion.LatentVideoDiffusion
       latent_shape: *latent_shape
@@ -222,7 +222,7 @@ ema:
   min_value: 0.0
   power: 0.75
   update_after_step: 0
-task_name: pushT_video
+task_name: pushT_policy
 training:
   checkpoint_every: 1
   debug: false
