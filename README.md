@@ -36,7 +36,7 @@ $ conda activate vilpenv
 
 Then launch the training by running
 ```console
-$ python train.py --config-dir=./UniT/config --config-name=train_vq_pushT.yaml
+$ python train.py --config-dir=./VILP/config --config-name=train_vq_pushT.yaml
 ```
 The pretrained models will be saved in /vq_models
 
@@ -48,14 +48,14 @@ $ wandb login
 ```
 Then launch the training by running
 ```console
-$ python train.py --config-dir=./UniT/config --config-name=train_vilp_pushT_state_planning.yaml hydra.run.dir=data/outputs/your_folder_name
+$ python train.py --config-dir=./VILP/config --config-name=train_vilp_pushT_state_planning.yaml hydra.run.dir=data/outputs/your_folder_name
 ```
 Please note that you need to specify the path to the pretrained VQVAE in the YAML config file.
 
 After the model is fully trained (It usually requires at least several hours, which depends on your GPU), run the following command line to export the model from the checkpoint
 
 ```console
-$ python train.py --config-dir=./UniT/config --config-name=save_vilp_pushT_state_planning.yaml hydra.run.dir=data/outputs/the_checkpoint_folder
+$ python train.py --config-dir=./VILP/config --config-name=save_vilp_pushT_state_planning.yaml hydra.run.dir=data/outputs/the_checkpoint_folder
 ```
 
 If you training the planning model without low dimentional observations (use `train_vilp_pushT_planning.yaml`), you should directly see some generated videos on wandb during training!
@@ -66,7 +66,7 @@ If you training the planning model without low dimentional observations (use `tr
 Launch the job by running
 
 ```console
-$ python train.py --config-dir=./UniT/config --config-name=train_vilp_pushT_state_policy.yaml hydra.run.dir=data/outputs/your_folder_name
+$ python train.py --config-dir=./VILP/config --config-name=train_vilp_pushT_state_policy.yaml hydra.run.dir=data/outputs/your_folder_name
 ```
 
 All results will be uploaded to wandb!
