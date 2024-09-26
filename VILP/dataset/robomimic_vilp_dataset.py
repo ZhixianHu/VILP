@@ -222,20 +222,19 @@ class RobomimicVilpDataset(BaseImageDataset):
             # resize to 96,96,3
             new_height, new_width = 96, 96
 
-            # 初始化一个列表来保存调整大小后的图像
             resized_imgs = []
 
             for i in range(before_resize.shape[0]):
-                # 对于 OpenCV，需要将图像的形状从 C, H, W 转换为 H, W, C
+
                 img = np.transpose(before_resize[i], (1, 2, 0))
-                # 应用双线性插值
+
                 resized_img = cv2.resize(img, (new_width, new_height))
-                # 如果需要，将图像的形状从 H, W, C 转换回 C, H, W
+
                 resized_img = np.transpose(resized_img, (2, 0, 1))
-                # 将调整大小后的图像添加到列表中
+
                 resized_imgs.append(resized_img)
 
-            # 将列表转换为 NumPy 数组，形状为 T, C, new_height, new_width
+
             resized_imgs = np.array(resized_imgs)
             obs_dict[key] = resized_imgs
             # T,C,H,W
