@@ -223,18 +223,11 @@ class RobomimicVilpDataset(BaseImageDataset):
             new_height, new_width = 96, 96
 
             resized_imgs = []
-
             for i in range(before_resize.shape[0]):
-
                 img = np.transpose(before_resize[i], (1, 2, 0))
-
                 resized_img = cv2.resize(img, (new_width, new_height))
-
                 resized_img = np.transpose(resized_img, (2, 0, 1))
-
                 resized_imgs.append(resized_img)
-
-
             resized_imgs = np.array(resized_imgs)
             obs_dict[key] = resized_imgs
             # T,C,H,W

@@ -78,10 +78,6 @@ class SaveVilpPlanningWorkspace(BaseWorkspace):
                 file_path = os.path.join(folder_path, file_name)
                 torch.save(self.ema_model.model_high_level.state_dict(), file_path)
 
-
-        
-
-
 @hydra.main(
     version_base=None,
     config_path=str(pathlib.Path(__file__).parent.parent.joinpath("config")), 

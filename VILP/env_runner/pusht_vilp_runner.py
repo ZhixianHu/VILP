@@ -186,7 +186,6 @@ class PushtVilpRunner(BaseImageRunner):
             pred_img_seq = None
             np_pred_image_seq = None
             image_buffer = []
-            comp_time_buffer = []
             while not done:
                 # create obs dict
 
@@ -200,16 +199,7 @@ class PushtVilpRunner(BaseImageRunner):
                 
                 # run policy
                 with torch.no_grad():
-
-                    # compute the time for each step
-                    # unit: second
-                    time_stamp_before = time.time()
                     action_dict, pred_img_seq = policy.predict_action(obs_dict)
-                    time_stamp_after = time.time()
-                    comp_time_buffer.append(time_stamp_after - time_stamp_before)
-
-
-
                 # device_transfer
                 np_action_dict = dict_apply(action_dict,
                     lambda x: x.detach().to('cpu').numpy())
@@ -226,12 +216,6 @@ class PushtVilpRunner(BaseImageRunner):
                     image_buffer.append(np_pred_image_seq[:, i, :, :])
                 # update pbar
                 pbar.update(action.shape[1])
-
-            # print the average and mean computation time
-            #print('average computation time:', np.mean(comp_time_buffer))
-            #print('std computation time:', np.std(comp_time_buffer))
-            #print('max computation time:', np.max(comp_time_buffer))
-            #print('num of steps:', len(comp_time_buffer))
             pbar.close()
 
             all_video_paths[this_global_slice] = env.render()[this_local_slice]
@@ -244,44 +228,12 @@ class PushtVilpRunner(BaseImageRunner):
         log_data = dict()
 
         # log images
-
         batched_data = [[] for _ in range(image_buffer[0].shape[0])]  # Prepare a list of lists for each batch
         for data in image_buffer:
             for batch_index in range(data.shape[0]):
                 batched_data[batch_index].append(data[batch_index])
         videos = [np.stack(batch_images) for batch_images in batched_data]
 
-
-        # save image in the input_image_list and rec_image_list
-        # for each item, data is batch, height, width, channel
-        # save all images in the batch, and name as input/rec_{batch_idx}_{list_idx}
-        # using numpy imwrite
-        '''
-        imgpath = '/home/zhengtong/VILP/2pi_vis'
-        for list_idx in range(len(input_image_list)):
-            batch = input_image_list[list_idx]
-            for batch_idx in range(batch.shape[0]):
-                img = batch[batch_idx, :, :, :]
-                img = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
-                # save path: imgpath + /input/ + input_{batch_idx}_{list_idx}.png
-                cv2.imwrite(imgpath +'/input' + f'/input_{batch_idx}_{list_idx}.png', img)
-        for list_idx in range(len(rec_image_list)):
-            batch = rec_image_list[list_idx]
-            for batch_idx in range(batch.shape[0]):
-                img = batch[batch_idx, :, :, :]
-                img = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
-                # save path: imgpath + /rec/ + rec_{batch_idx}_{list_idx}.png
-                cv2.imwrite(imgpath +'/rec' + f'/rec_{batch_idx}_{list_idx}.png', img)
-        '''
-
-        # results reported in the paper are generated using the commented out line below
-        # which will only report and average metrics from first n_envs initial condition and seeds
-        # fortunately this won't invalidate our conclusion since
-        # 1. This bug only affects the variance of metrics, not their mean
-        # 2. All baseline methods are evaluated using the same code
-        # to completely reproduce reported numbers, uncomment this line:
-        # for i in range(len(self.env_fns)):
-        # and comment out this line
         for i in range(n_inits):
             seed = self.env_seeds[i]
             prefix = self.env_prefixs[i]
@@ -304,16 +256,6 @@ class PushtVilpRunner(BaseImageRunner):
 
         for i, video in enumerate(videos):
             key = f"video_{i}"  # Unique key for each video
-            # Change from (frames, c, height, width) to (frames, height, width, c)
-            #video = np.moveaxis(video, 1, -1)
             video = (video*255).astype(np.uint8)  # Convert to 8-bit integer
             log_data[key] = wandb.Video(video)  # Convert PyTorch tensor to NumPy array
-            # save the video to local
-            #random_number = np.random.randint(0, 100000)
-            #gobal_path = pathlib.Path(self.output_dir).joinpath(f'media/random_{random_number}')
-            #video_path = f"video_{i}.mp4"
-            #wandb.save(str(gobal_path.joinpath(video_path)))
-
-    
-
         return log_data

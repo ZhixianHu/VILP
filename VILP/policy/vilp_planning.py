@@ -112,8 +112,6 @@ class VilpPlanning(BaseLowdimPolicy):
         latent = self.vqgan.to_latent(self.vqgan.get_input(img_batch,'image'))
 
         latent = latent.reshape(batch_size, subgoal_steps, latent.shape[1], latent.shape[2], latent.shape[3])
-
-
         obs_high_level = {}
         for key, value in obs.items():
             obs_high_level[key] = value
@@ -124,6 +122,5 @@ class VilpPlanning(BaseLowdimPolicy):
         }
 
         loss_high_level = self.model_high_level.compute_loss(high_level_batch)
-
 
         return { 'high_level_loss':loss_high_level.item()}

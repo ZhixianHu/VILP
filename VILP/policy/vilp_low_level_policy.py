@@ -9,7 +9,6 @@ from VILP.policy.action_mapping_itp import ActionMappingItp
 from VILP.policy.utils import interpolate_tensor
 from typing import List
 
-
 class VilpLowLevelPolicy(BaseLowdimPolicy):
     def __init__(self, 
             model_low_level: ActionMappingItp,

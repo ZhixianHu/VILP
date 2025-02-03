@@ -280,7 +280,6 @@ class RobomimicVilpRunner(BaseImageRunner):
             pred_img_seq = None
             np_pred_image_seq = None
             image_buffer = []
-            comp_time_buffer = []
             while not done:
                 # create obs dict
 
@@ -297,8 +296,6 @@ class RobomimicVilpRunner(BaseImageRunner):
                 np_obs_dict['agentview_image'] = agentview_image
                 np_obs_dict['robot0_eye_in_hand_image'] = robot0_eye_in_hand_image
 
-
-
                 # device transfer
                 obs_dict = dict_apply(np_obs_dict, 
                     lambda x: torch.from_numpy(x).to(
@@ -306,16 +303,7 @@ class RobomimicVilpRunner(BaseImageRunner):
                 
                 # run policy
                 with torch.no_grad():
-                    #action_dict = policy.predict_action(obs_dict)
-                    time_stamp_before = time.time()
                     action_dict, pred_img_seq = policy.predict_action(obs_dict)
-                    time_stamp_after = time.time()
-                    comp_time_buffer.append(time_stamp_after - time_stamp_before)
-                #input_img = (obs_dict['image'][:,-1,:,:,:].permute(0, 2, 3, 1)*255).to(dtype=torch.uint8)
-                #input_img = input_img.detach().cpu().numpy()
-
-                #input_image_list.append(input_img)
-
                 # device_transfer
                 np_action_dict = dict_apply(action_dict,
                     lambda x: x.detach().to('cpu').numpy())
@@ -334,10 +322,6 @@ class RobomimicVilpRunner(BaseImageRunner):
                     image_buffer.append(np_pred_image_seq[:, i, :, :])
                 # update pbar
                 pbar.update(action.shape[1])
-            #print('average computation time:', np.mean(comp_time_buffer))
-            #print('std computation time:', np.std(comp_time_buffer))
-            #print('max computation time:', np.max(comp_time_buffer))
-            #print('num of steps:', len(comp_time_buffer))
             pbar.close()
 
             # collect data for this round
@@ -380,18 +364,8 @@ class RobomimicVilpRunner(BaseImageRunner):
 
         for i, video in enumerate(videos):
             key = f"video_{i}"  # Unique key for each video
-            # Change from (frames, c, height, width) to (frames, height, width, c)
-            #video = np.moveaxis(video, 1, -1)
             video = (video*255).astype(np.uint8)  # Convert to 8-bit integer
             log_data[key] = wandb.Video(video)  # Convert PyTorch tensor to NumPy array
-            # save the video to local
-            #random_number = np.random.randint(0, 100000)
-            #gobal_path = pathlib.Path(self.output_dir).joinpath(f'media/random_{random_number}')
-            #video_path = f"video_{i}.mp4"
-            #wandb.save(str(gobal_path.joinpath(video_path)))
-
-    
-
         return log_data
 
     def undo_transform_action(self, action):

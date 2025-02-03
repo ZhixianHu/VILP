@@ -6,7 +6,6 @@ from VILP.taming.models.vqgan import VQModel
 from VILP.policy.latent_video_diffusion_conditional_encoding import LatentVideoDiffusionConditionalEncoding
 from typing import List
 
-
 class VilpPlanningConditionalEncoding(BaseLowdimPolicy):
     def __init__(self, 
             model_high_level:LatentVideoDiffusionConditionalEncoding,
