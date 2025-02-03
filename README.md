@@ -1,8 +1,8 @@
 # VILP: Imitation Learning with Latent Video Planning 
 
-_under review_
+_Accepted by IEEE RA-L_
 
-_We will keep updating this repo._
+
 
 ![teaser](teasers/teaser_temp.png)
 
