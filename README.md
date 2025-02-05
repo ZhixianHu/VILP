@@ -2,6 +2,7 @@
 
 _Accepted by IEEE RA-L_
 
+[arXiv](https://arxiv.org/abs/2502.01784) | [Summary Video](https://www.youtube.com/watch?v=sfa_AmI0NoI)
 
 ![teaser](teasers/teaser.gif)
 
@@ -70,3 +71,18 @@ $ python train.py --config-dir=./VILP/config --config-name=train_vilp_pushT_stat
 
 All results will be uploaded to wandb!
 
+## BibTex
+
+If you find this codebase useful, consider citing:
+
+```bibtex
+@misc{xu2025vilp,
+  title={VILP: Imitation Learning with Latent Video Planning},
+  author={Zhengtong Xu and Qiang Qiu and Yu She},
+  year={2025},
+  eprint={2502.01784},
+  archivePrefix={arXiv},
+  primaryClass={cs.RO},
+  url={https://arxiv.org/abs/2502.01784},
+}
+```
