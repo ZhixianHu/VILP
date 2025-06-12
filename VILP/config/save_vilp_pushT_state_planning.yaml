@@ -1,4 +1,4 @@
-_target_: VILP.workspace.train_vilp_planning_workspace.TrainVilpPlanningWorkspace
+_target_: VILP.workspace.save_vilp_planning_workspace.SaveVilpPlanningWorkspace
 checkpoint:
   save_last_ckpt: true
   save_last_snapshot: false
