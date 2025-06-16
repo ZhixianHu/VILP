@@ -43,7 +43,7 @@ dependencies:
   - boto3=1.24.96
   - accelerate=0.13.2
   - datasets=2.6.1
-  - diffusers=0.26.1
+  - diffusers=0.11.1
   - av=10.0.0
   - cmake=3.24.3
   # trick to avoid cpu affinity issue described in https://github.com/pytorch/pytorch/issues/99625
@@ -72,5 +72,7 @@ dependencies:
     - streamlit>=0.73.1
     - einops==0.3.0
     - more-itertools>=8.0.0
-    - transformers==4.3.1
-
+    - transformers==4.21.0
+    - huggingface_hub==0.10.1
+    - moviepy==1.0.3  # Using an older version of moviepy compatible with numpy 1.23.3
+    - imageio
