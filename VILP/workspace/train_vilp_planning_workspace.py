@@ -253,78 +253,13 @@ class TrainVilpPlanningWorkspace(BaseWorkspace):
                                 key = f"video_{i}"  
                                 video = (video*255).astype(np.uint8) 
                                 step_log[key] = wandb.Video(video)  
-                elif cfg.generated_views == 2:
-                # When generated views >=1, we can't really evaluate the model during training
-                # because we only train one view at a time.
-                # This evaluation is only for monitoring if the model converges reasonably during training.
-                    if (self.epoch % cfg.training.rollout_every) == 0:
-                        start_image_buffer = []
-                        episode_lengths = dataset.get_episode_lengths()
-                        for i in range(episode_lengths):
-                            is_image,image = dataset.get_val_episode_start(i,cfg.output_key)
-                            if is_image:
-                                start_image_buffer.append(image)
-                        # transfer all images to a batch and to tensor
-                        start_image_batch = {
-                            cfg.output_key: 
-                                torch.stack([torch.from_numpy(img) for img in start_image_buffer]).to(device).unsqueeze(1)
-                            }
-                        image_buffer_dict = {}
-                        for key in cfg.input_keys:
-                            episode_image_buffer = []
-                            for i in range(episode_lengths):
-                                is_image,image_seq = dataset.get_val_episode_full(i,key)
-                                if is_image:
-                                    episode_image_buffer.append(image_seq)
-                            image_buffer_dict[key] = episode_image_buffer
-                            start_image_batch[key] = torch.stack([torch.from_numpy(img_seq[0]) for img_seq in episode_image_buffer]).to(device).unsqueeze(1)
-                        step_idx = 0
-                        max_steps = cfg.max_generation_steps
-                        result_image_buffer = [] 
-                        pbar = tqdm.tqdm(total=max_steps, desc="Eval VideoPlanning", 
-                            leave=False, mininterval=1) 
-                        while step_idx < max_steps:
-                            if step_idx == 0:
-                                with torch.no_grad():
-                                    pred_img_seq = policy.predict_image(start_image_batch)
-                            else:
-                                with torch.no_grad():
-                                    pred_obs = {}
-                                    pred_img_last = torch.from_numpy(np_pred_image_last).to(device=device)
-                                    pred_obs[cfg.output_key] = pred_img_last.unsqueeze(1)
-    
-                                    for key in cfg.input_keys:
-                                        pred_obs[key] = torch.stack([
-                                            torch.from_numpy(img_seq[2*step_idx] if (2*step_idx) < len(img_seq) else img_seq[-1]) 
-                                            for img_seq in image_buffer_dict[key]
-                                        ]).to(device).unsqueeze(1)
-
-                                    pred_img_seq = policy.predict_image(pred_obs)
-
-                            np_pred_image_seq = pred_img_seq.detach().to('cpu').numpy()
-                            for i in range(np_pred_image_seq.shape[1]):
-                                result_image_buffer.append(np_pred_image_seq[:, i, :, :])
-                            np_pred_image_last = np_pred_image_seq[:, -1, :, :]
-                            step_idx += 1
-                            pbar.update(1)
-                        pbar.close()
-                        batched_data = [[] for _ in range(result_image_buffer[0].shape[0])]  
-                        for data in result_image_buffer:
-                            for batch_index in range(data.shape[0]):
-                                batched_data[batch_index].append(data[batch_index])
-                        videos = [np.stack(batch_images) for batch_images in batched_data]
-                        for i, video in enumerate(videos):
-                            key = f"video_{i}"  
-                            video = (video*255).astype(np.uint8) 
-                            step_log[key] = wandb.Video(video)  
 
                 # run validation
                 if (self.epoch % cfg.training.val_every) == 0:
                     with torch.no_grad():
 
                         high_level_val_losses = list()
-                        image_input = None
-                        image_rec = None
+
                         with tqdm.tqdm(val_dataloader, desc=f"Validation epoch {self.epoch}", 
                                 leave=False, mininterval=cfg.training.tqdm_interval_sec) as tepoch:
                             for batch_idx, batch in enumerate(tepoch):
