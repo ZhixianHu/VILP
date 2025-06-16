@@ -87,6 +87,6 @@ If you find this codebase useful, consider citing:
 }
 ```
 
-##Troubleshoot
+## Troubleshoot
 
 If you have this issue `GL/osmesa.h: No such file or directory`, please refer to [this link](https://github.com/openai/mujoco-py/issues/627#issuecomment-1007658905).
