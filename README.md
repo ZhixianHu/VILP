@@ -31,7 +31,7 @@ If you have this issue `GL/osmesa.h: No such file or directory`, please refer to
 
 ## Example
 
-Try the [simulation Push-T task](https://diffusion-policy.cs.columbia.edu/) with VILP!
+Try the [simulation Push-T task](https://diffusion-policy.cs.columbia.edu/) with VILP! Please download the PushT dataset from [here](https://diffusion-policy.cs.columbia.edu/data/training/) first.
 
 ### First step: image compression training
 
