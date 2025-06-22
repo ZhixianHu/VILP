@@ -2,7 +2,7 @@
 
 set -e
 
-source ~/miniforge3/etc/profile.d/conda.sh
+source /scratch/gilbreth/hu934/miniforge3/etc/profile.d/conda.sh
 conda activate vilpenv
 
 mkdir third_party
