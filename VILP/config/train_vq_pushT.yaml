@@ -35,14 +35,14 @@ dataset:
   seed: 42
   val_ratio: 0.00
 val_dataloader:
-  batch_size: 64
-  num_workers: 8
+  batch_size: 16
+  num_workers: 4
   persistent_workers: false
   pin_memory: true
   shuffle: false
 dataloader:
-  batch_size: 64
-  num_workers: 8
+  batch_size: 16
+  num_workers: 4
   persistent_workers: false
   pin_memory: true
   shuffle: true
