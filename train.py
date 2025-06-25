@@ -3,7 +3,7 @@ Usage:
 Training:
 python train.py --config-name=train_diffusion_lowdim_workspace
 """
-
+print("Train.py start")
 import sys
 # use line-buffering for both stdout and stderr
 sys.stdout = open(sys.stdout.fileno(), mode='w', buffering=1)
@@ -13,6 +13,8 @@ import hydra
 from omegaconf import OmegaConf
 import pathlib
 from diffusion_policy.workspace.base_workspace import BaseWorkspace
+
+print("Finish import")
 
 # allows arbitrary python code execution in configs using the ${eval:''} resolver
 OmegaConf.register_new_resolver("eval", eval, replace=True)
@@ -32,4 +34,5 @@ def main(cfg: OmegaConf):
     workspace.run()
 
 if __name__ == "__main__":
+    print("Before main")
     main()

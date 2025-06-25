@@ -1,4 +1,4 @@
-_target_: VILP.workspace.train_vilp_planning_workspace.TrainVilpPlanningWorkspace
+_target_: VILP.workspace.save_vilp_planning_workspace.SaveVilpPlanningWorkspace
 checkpoint:
   save_last_ckpt: true
   save_last_snapshot: false
@@ -33,7 +33,7 @@ optimizer:
 past_action_visible: false
 
 dataset_obs_steps: &dataset_obs_steps 1
-batch_size: &batch_size 64
+batch_size: &batch_size 32
 device: &device cuda:0
 exp_name: default
 horizon: &horizon 23
